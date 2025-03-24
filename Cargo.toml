@@ -11,11 +11,19 @@ path = "src/main.rs"
 name = "fatum-api-rs"
 
 [dependencies]
+anyhow = "1.0.97"
+argon2 = "0.5.3"
 axum = "0.8.1"
 config = "0.15.11"
-tokio = { version = "1.43.0", features = ["full"] }
-serde = { version = "1", features = ["derive"] }
 reqwest = "0.12.12"
+secrecy = "0.10.3"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2.0.12"
+tokio = { version = "1.43.0", features = ["full"] }
+validator = "0.20.0"
+quickcheck = "1.0.3"
+fake = "4.2.0"
+quickcheck_macros = "1.0.0"
 
 [dependencies.sqlx]
 version = "0.8.3"
