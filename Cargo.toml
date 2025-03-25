@@ -2,6 +2,7 @@
 name = "fatum-api-rs"
 version = "0.1.0"
 edition = "2024"
+authors = ["Jan Rzepiszczak"]
 
 [lib]
 path = "src/lib.rs"
@@ -15,15 +16,14 @@ anyhow = "1.0.97"
 argon2 = "0.5.3"
 axum = "0.8.1"
 config = "0.15.11"
-reqwest = "0.12.12"
-secrecy = "0.10.3"
+chrono = { version = "0.4.40", features = ["serde"] }
+jsonwebtoken = "9.3.1"
+secrecy = { version = "0.10.3" , features = ["serde"]}
 serde = { version = "1", features = ["derive"] }
 thiserror = "2.0.12"
 tokio = { version = "1.43.0", features = ["full"] }
 validator = "0.20.0"
-quickcheck = "1.0.3"
-fake = "4.2.0"
-quickcheck_macros = "1.0.0"
+uuid = { version = "1.16.0", features = ["serde", "v4"] }
 
 [dependencies.sqlx]
 version = "0.8.3"
@@ -36,3 +36,9 @@ features = [
     "chrono",
     "migrate"
 ]
+
+[dev-dependencies]
+reqwest = "0.12.12"
+fake = "4.2.0"
+quickcheck = "1.0.3"
+quickcheck_macros = "1.0.0"

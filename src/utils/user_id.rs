@@ -1,6 +1,8 @@
-use sqlx::types::Uuid;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct UserId(Uuid);
 
 impl From<Uuid> for UserId {

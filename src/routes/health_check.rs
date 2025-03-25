@@ -5,18 +5,18 @@ use sqlx::PgPool;
 
 pub async fn health_check_handler(
     Extension(db): Extension<PgPool>,
-) -> (StatusCode, Json<HealthCheckResponse>) {
+) -> (StatusCode, Json<Response>) {
     let result = run_health_checks(&db).await;
     match result {
         Ok(_) => (
             StatusCode::OK,
-            Json(HealthCheckResponse {
+            Json(Response {
                 status: "OK".to_string(),
             }),
         ),
         Err(_) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(HealthCheckResponse {
+            Json(Response {
                 status: "OK".to_string(),
             }),
         ),
@@ -37,6 +37,6 @@ async fn check_db(db: &PgPool) -> Result<(), String> {
 }
 
 #[derive(Serialize)]
-pub struct HealthCheckResponse {
+pub struct Response {
     status: String,
 }

@@ -7,8 +7,6 @@ use tokio::task::spawn_blocking;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AuthError {
-    #[error("Invalid email address")]
-    InvalidEmailFormat(),
     #[error("Invalid credentials")]
     InvalidCredentials(#[source] anyhow::Error),
     #[error(transparent)]
@@ -16,7 +14,7 @@ pub enum AuthError {
 }
 
 pub struct Credentials {
-    pub email: String,
+    pub email: AccountEmail,
     pub password: SecretString,
 }
 
@@ -32,10 +30,7 @@ pub async fn validate_credentials(
         CWOrkoo7oJBQ/iyh7uJ0LO2aLEfrHwTWllSAxT0zRno",
     );
 
-    let email = match AccountEmail::parse(credentials.email) {
-        Ok(email) => Ok(email),
-        Err(_) => Err(AuthError::InvalidEmailFormat()),
-    }?;
+    let email = credentials.email;
 
     if let Some((stored_user_id, stored_password_hash)) =
         get_stored_credentials(&email, pool).await?
