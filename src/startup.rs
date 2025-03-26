@@ -17,9 +17,16 @@ pub struct Application {
 
 impl Application {
     pub async fn build(configuration: Configuration) -> Result<Self, anyhow::Error> {
-        let connection_pool =
+        let db_pool =
             PgPool::connect(&configuration.database.connection_string().expose_secret()).await?;
 
+        Self::build_with_custom_pool(configuration, db_pool).await
+    }
+
+    pub async fn build_with_custom_pool(
+        configuration: Configuration,
+        db_pool: PgPool,
+    ) -> Result<Self, anyhow::Error> {
         let address = format!(
             "{}:{}",
             configuration.application.host, configuration.application.port
@@ -28,19 +35,15 @@ impl Application {
         let listener = TcpListener::bind(address).await?;
         let port = listener.local_addr()?.port();
 
-        let server = run(
-            listener,
-            connection_pool,
-            configuration.application.hmac_secret,
-        )?;
+        let server = run(listener, db_pool, configuration.application.hmac_secret)?;
 
         Ok(Self { port, server })
     }
-    
+
     pub async fn run(self) -> Result<(), std::io::Error> {
         self.server.await
     }
-    
+
     pub fn port(&self) -> u16 {
         self.port
     }
