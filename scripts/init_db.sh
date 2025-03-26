@@ -1,6 +1,8 @@
 #set -x
 set -eo pipefail
 
+SKIP_DOCKER=false
+
 while [ $# -gt 0 ]; do
   case $1 in
     --skip-docker) SKIP_DOCKER=true;;
@@ -24,8 +26,10 @@ DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 DB_NAME="${POSTGRES_DB:=fatum}"
 DB_PORT="${POSTGRES_PORT:=5432}"
 DB_HOST="${POSTGRES_HOST:=localhost}"
-if [ "${SKIP_DOCKER}" = true ]
+
+if [ "${SKIP_DOCKER}" = false ]
 then
+  echo >&2 "Creating database ${DB_NAME}..."
   docker run \
     -e POSTGRES_USER="${DB_USER}" \
     -e POSTGRES_PASSWORD="${DB_PASSWORD}" \

@@ -18,7 +18,7 @@ pub struct Configuration {
     pub database: DatabaseConfiguration,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct DatabaseConfiguration {
     pub username: String,
     pub password: SecretString,

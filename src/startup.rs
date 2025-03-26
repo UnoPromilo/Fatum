@@ -1,4 +1,5 @@
 use crate::authentication::reject_unauthorized_user;
+use crate::configuration::Configuration;
 use crate::routes::*;
 use crate::utils::HmacSecret;
 use axum::middleware::from_fn;
@@ -8,6 +9,42 @@ use axum::{Extension, Router};
 use secrecy::{ExposeSecret, SecretString};
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+
+pub struct Application {
+    port: u16,
+    server: Serve<TcpListener, Router, Router>,
+}
+
+impl Application {
+    pub async fn build(configuration: Configuration) -> Result<Self, anyhow::Error> {
+        let connection_pool =
+            PgPool::connect(&configuration.database.connection_string().expose_secret()).await?;
+
+        let address = format!(
+            "{}:{}",
+            configuration.application.host, configuration.application.port
+        );
+
+        let listener = TcpListener::bind(address).await?;
+        let port = listener.local_addr()?.port();
+
+        let server = run(
+            listener,
+            connection_pool,
+            configuration.application.hmac_secret,
+        )?;
+
+        Ok(Self { port, server })
+    }
+    
+    pub async fn run(self) -> Result<(), std::io::Error> {
+        self.server.await
+    }
+    
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+}
 
 pub fn run(
     listener: TcpListener,
