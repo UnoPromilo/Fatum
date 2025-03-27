@@ -28,4 +28,5 @@ fn get_token(headers: &HeaderMap) -> Option<&str> {
     headers
         .get(axum::http::header::AUTHORIZATION)
         .and_then(|h| h.to_str().ok())
+        .and_then(|h| h.strip_prefix("Bearer "))
 }
