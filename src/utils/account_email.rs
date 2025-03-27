@@ -43,6 +43,7 @@ mod tests {
     fn email_missing_at_symbol_is_rejected() {
         let email = "test".to_string();
         let result = AccountEmail::parse(email);
+        assert!(result.is_err());
     }
 
     #[test]
