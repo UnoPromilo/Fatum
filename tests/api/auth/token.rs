@@ -12,7 +12,7 @@ async fn using_correct_username_and_password_returns_a_200(db_pool: PgPool) {
 
     // Act
     let response = app.post_login(&login_body).await;
-    
+
     // Assert
     assert!(response.status().is_success());
     let response_body: Response = response.json().await.unwrap();
@@ -31,7 +31,7 @@ async fn using_correct_username_and_incorrect_password_returns_a_404(db_pool: Pg
 
     // Act
     let response = app.post_login(&login_body).await;
-    
+
     // Assert
     assert_eq!(response.status().as_str(), "404");
 }

@@ -3,7 +3,7 @@ use axum::{Extension, Json};
 use serde::Serialize;
 use sqlx::PgPool;
 
-pub async fn health_check_handler(
+pub async fn get_health_handler(
     Extension(db): Extension<PgPool>,
 ) -> (StatusCode, Json<Response>) {
     let result = run_health_checks(&db).await;

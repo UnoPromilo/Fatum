@@ -5,7 +5,7 @@ use axum::{Extension, Json};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-pub async fn login_handler(
+pub async fn post_handler(
     Extension(db): Extension<PgPool>,
     Extension(hmac_secret): Extension<HmacSecret>,
     Json(request): Json<Request>,
@@ -34,12 +34,14 @@ pub async fn login_handler(
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Request {
     pub email: String,
     pub password: String,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Response {
     pub jwt: String,
 }

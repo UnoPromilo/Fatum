@@ -7,6 +7,7 @@ use fake::faker::internet::en::SafeEmail;
 use fatum_api_rs::configuration::get_configuration;
 use fatum_api_rs::startup::Application;
 use fatum_api_rs::utils::UserId;
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -15,6 +16,7 @@ pub struct TestApp {
     pub db_pool: PgPool,
     pub test_user: TestUser,
     pub api_client: reqwest::Client,
+    pub headers: HeaderMap,
 }
 pub async fn spawn_app(db_pool: PgPool) -> TestApp {
     let configuration = {
@@ -42,13 +44,22 @@ pub async fn spawn_app(db_pool: PgPool) -> TestApp {
         db_pool: db_pool.clone(),
         test_user,
         api_client,
+        headers: HeaderMap::new(),
     }
 }
 
 impl TestApp {
+    pub fn attach_auth_header(&mut self, jwt: &str) {
+        self.headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", jwt)).unwrap(),
+        );
+    }
+
     pub async fn get_health_check(&self) -> reqwest::Response {
         self.api_client
-            .get(&format!("{}/health-check", self.address))
+            .get(&format!("{}/health", self.address))
+            .headers(self.headers.clone())
             .send()
             .await
             .expect("Failed to execute request")
@@ -59,7 +70,21 @@ impl TestApp {
         Body: serde::Serialize,
     {
         self.api_client
-            .post(&format!("{}/login", self.address))
+            .post(&format!("{}/auth/tokens", self.address))
+            .headers(self.headers.clone())
+            .json(body)
+            .send()
+            .await
+            .expect("Failed to execute request")
+    }
+
+    pub async fn change_password<Body>(&self, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
+        self.api_client
+            .put(&format!("{}/auth/password", self.address))
+            .headers(self.headers.clone())
             .json(body)
             .send()
             .await
@@ -80,6 +105,17 @@ impl TestUser {
             email: SafeEmail().fake(),
             password: Uuid::new_v4().to_string(),
         }
+    }
+
+    pub async fn get_jwt_token(&self, app: &TestApp) -> String {
+        let login_body = serde_json::json!({
+            "email": &self.email,
+            "password": &self.password,
+        });
+        
+        let response = app.post_login(&login_body).await;
+        let response_body: LoginResponse = response.json().await.unwrap();
+        response_body.jwt
     }
 
     async fn store(&self, db_pool: &PgPool) {
@@ -104,4 +140,9 @@ impl TestUser {
         .await
         .expect("Failed to insert user");
     }
+}
+
+#[derive(serde::Deserialize)]
+struct LoginResponse {
+    jwt: String,
 }

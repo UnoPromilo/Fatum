@@ -7,7 +7,7 @@ use secrecy::{ExposeSecret, SecretString};
 use sqlx::PgPool;
 use tokio::task::spawn_blocking;
 
-pub async fn change_password(
+pub async fn update_stored_password(
     user_id: UserId,
     new_password: SecretString,
     pool: &PgPool,

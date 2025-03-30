@@ -3,7 +3,7 @@ use crate::configuration::Configuration;
 use crate::routes::*;
 use crate::utils::HmacSecret;
 use axum::middleware::from_fn;
-use axum::routing::{get, post};
+use axum::routing::{get, post, put};
 use axum::serve::Serve;
 use axum::{Extension, Router};
 use secrecy::{ExposeSecret, SecretString};
@@ -72,10 +72,10 @@ pub fn run(
 
 fn create_anonymous_routes() -> Router {
     Router::new()
-        .route("/health-check", get(health_check_handler))
-        .route("/login", post(login_handler))
+        .route("/health", get(health::get_health_handler))
+        .route("/auth/tokens", post(auth::tokens::post_handler))
 }
 
 fn create_authorized_routes() -> Router {
-    Router::new()
+    Router::new().route("/auth/password", put(auth::password::put_handler))
 }

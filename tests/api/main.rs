@@ -1,3 +1,3 @@
-mod health_check;
-mod  helpers;
-mod login;
+mod auth;
+mod health;
+mod helpers;

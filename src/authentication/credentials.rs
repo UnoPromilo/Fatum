@@ -1,5 +1,5 @@
 use crate::utils::{AccountEmail, UserId};
-use anyhow::{Context, anyhow};
+use anyhow::{anyhow, Context};
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use secrecy::{ExposeSecret, SecretString};
 use sqlx::PgPool;
@@ -48,6 +48,20 @@ pub async fn validate_credentials(
         .map_err(AuthError::InvalidCredentials)
 }
 
+pub async fn validate_password(
+    user_id: &UserId,
+    password: SecretString,
+    pool: &PgPool,
+) -> Result<(), AuthError> {
+    let expected_password_hash = get_stored_password_hash(user_id, pool).await?;
+
+    spawn_blocking(move || verify_password_hash(&expected_password_hash, &password))
+        .await
+        .context("Failed to verify credentials")??;
+
+    Ok(())
+}
+
 async fn get_stored_credentials(
     email: &AccountEmail,
     pool: &PgPool,
@@ -62,6 +76,22 @@ async fn get_stored_credentials(
     .map(|row| (row.user_id.into(), SecretString::from(row.password_hash)));
 
     Ok(row)
+}
+
+async fn get_stored_password_hash(
+    user_id: &UserId,
+    pool: &PgPool,
+) -> Result<SecretString, anyhow::Error> {
+    let password_hash = sqlx::query!(
+        r#"SELECT password_hash FROM accounts WHERE user_id = $1"#,
+        user_id.as_ref(),
+    )
+    .fetch_one(pool)
+    .await
+    .context("Failed to fetch password hash from stored account")?
+    .password_hash;
+
+    Ok(SecretString::from(password_hash))
 }
 
 fn verify_password_hash(
